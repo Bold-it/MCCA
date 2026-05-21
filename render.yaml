@@ -26,3 +26,5 @@ services:
         value: development-key-secret-12345
       - key: ML_ENCRYPTION_KEY
         generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.11.8
