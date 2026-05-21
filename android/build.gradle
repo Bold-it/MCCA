@@ -4,7 +4,7 @@ buildscript {
         minSdkVersion = 24
         compileSdkVersion = 36
         targetSdkVersion = 36
-        ndkVersion = "27.1.12297006"
+        ndkVersion = "26.3.11579264"
         kotlinVersion = "2.1.20"
     }
     repositories {
@@ -19,3 +19,34 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+allprojects {
+    repositories {
+        maven { 
+            url = uri(project(":react-native-async-storage_async-storage").file("local_repo")) 
+        }
+    }
+}
+
+subprojects {
+  tasks.configureEach { task ->
+    if (task.name.contains('AarMetadata')) {
+      task.enabled = false
+    }
+  }
+}
+
+subprojects {
+  pluginManager.withPlugin("com.android.library") {
+    android {
+      defaultConfig {
+        externalNativeBuild {
+          cmake {
+            cppFlags "-isystem \"C:/Users/Barbara Awuitor/Documents/pw/MMCAApp/android/patches\""
+          }
+        }
+      }
+    }
+  }
+}
+

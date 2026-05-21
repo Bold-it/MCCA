@@ -73,3 +73,14 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# MMCA custom ignores
+backend/node_modules/
+backend/db-data/
+backend/.env
+ml-service/venv/
+ml-service/.env
+ml-service/ml_storage.db
+ml-service/__pycache__/
+ml_storage.db
+

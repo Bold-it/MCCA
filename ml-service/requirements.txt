@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+python-multipart
+deepface
+tensorflow
+scikit-learn
+numpy
+python-jose[cryptography]
+cryptography
+pillow
+opencv-python

@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(uuid())
+  name            String
+  email           String   @unique
+  pinHash         String
+  enrolledMethods String[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  sessions           Session[]
+  authEvents         AuthEvent[]
+  alerts             Alert[]
+  iotDevices         IoTDevice[]
+  biometricTemplates BiometricTemplate[]
+}
+
+model Session {
+  id                String    @id @default(uuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  token             String    @unique
+  trustScore        Int       @default(100)
+  startedAt         DateTime  @default(now())
+  expiresAt         DateTime
+  terminatedAt      DateTime?
+  terminationReason String?
+}
+
+model AuthEvent {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  sessionId  String?
+  method     String
+  outcome    String
+  confidence Float
+  timestamp  DateTime @default(now())
+  ipAddress  String?
+  deviceId   String?
+}
+
+model Alert {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  severity  String
+  message   String
+  metadata  Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model IoTDevice {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  name       String
+  type       String
+  platform   String
+  externalId String?
+  status     String
+  lastSeen   DateTime @default(now())
+}
+
+model BiometricTemplate {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  method       String
+  templateHash String
+  createdAt    DateTime @default(now())
+}

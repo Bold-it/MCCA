@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: mmca-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma db push --accept-data-loss && npm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        value: mmca-presentation-secret-key-12345
+      - key: NODE_ENV
+        value: production
+
+  - type: web
+    name: mmca-ml-service
+    env: python
+    rootDir: ml-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ML_SERVICE_KEY
+        value: development-key-secret-12345
+      - key: ML_ENCRYPTION_KEY
+        generateValue: true
