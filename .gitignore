@@ -78,9 +78,11 @@ yarn-error.log
 backend/node_modules/
 backend/db-data/
 backend/.env
+backend/dist/
 ml-service/venv/
 ml-service/.env
 ml-service/ml_storage.db
 ml-service/__pycache__/
 ml_storage.db
+
 
