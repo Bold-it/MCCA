@@ -34,8 +34,14 @@ router.get('/', authMiddleware, async (req: AuthRequest, res, next) => {
 router.put('/:id/read', authMiddleware, async (req: AuthRequest, res, next) => {
   try {
     const { id } = req.params;
+    const alert = await prisma.alert.findUnique({
+      where: { id: id as string }
+    });
+    if (!alert || alert.userId !== req.user?.userId) {
+      return res.status(404).json({ success: false, error: 'Alert not found or access denied' });
+    }
     await prisma.alert.update({
-      where: { id, userId: req.user?.userId },
+      where: { id: id as string },
       data: { read: true }
     });
     res.json({ success: true });
@@ -50,7 +56,7 @@ router.put('/:id/read', authMiddleware, async (req: AuthRequest, res, next) => {
 router.put('/read-all', authMiddleware, async (req: AuthRequest, res, next) => {
   try {
     await prisma.alert.updateMany({
-      where: { userId: req.user?.userId, read: false },
+      where: { userId: req.user?.userId as string, read: false },
       data: { read: true }
     });
     res.json({ success: true });

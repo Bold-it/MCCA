@@ -11,7 +11,7 @@ async function main() {
   await prisma.session.deleteMany();
   await prisma.authEvent.deleteMany();
   await prisma.alert.deleteMany();
-  await prisma.ioTDevice.deleteMany();
+  await prisma.iotDevice.deleteMany();
   await prisma.biometricTemplate.deleteMany();
   await prisma.user.deleteMany();
 
@@ -54,7 +54,7 @@ async function main() {
   ];
 
   for (const device of devices) {
-    const createdDevice = await prisma.ioTDevice.create({
+    const createdDevice = await prisma.iotDevice.create({
       data: {
         userId: demoUser.id,
         name: device.name,

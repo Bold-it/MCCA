@@ -20,7 +20,7 @@ model User {
   sessions           Session[]
   authEvents         AuthEvent[]
   alerts             Alert[]
-  iotDevices         IoTDevice[]
+  iotDevices         IotDevice[]
   biometricTemplates BiometricTemplate[]
 }
 
@@ -61,7 +61,7 @@ model Alert {
   createdAt DateTime @default(now())
 }
 
-model IoTDevice {
+model IotDevice {
   id         String   @id @default(uuid())
   userId     String
   user       User     @relation(fields: [userId], references: [id])

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
+const JWT_SECRET = (process.env.JWT_SECRET || 'fallback-secret') as string;
 
 export interface AuthRequest extends Request {
   user?: { userId: string };
@@ -14,10 +14,10 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
     return res.status(401).json({ success: false, error: 'Authorization token missing' });
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.split(' ')[1] as string;
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
     req.user = decoded;
     next();
   } catch (error) {

@@ -7,8 +7,8 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "node16",
+    "moduleResolution": "node16",
     "target": "es2022",
     // For nodejs:
     "lib": ["es2022"],
@@ -36,5 +36,6 @@
     "jsx": "react-jsx",
     "isolatedModules": true,
     "skipLibCheck": true,
-  }
+  },
+  "exclude": ["src/__tests__", "dist", "node_modules"]
 }
