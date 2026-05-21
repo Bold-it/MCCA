@@ -9,7 +9,11 @@
  * Default: '10.0.2.2' works for the local Android Emulator.
  */
 
-const HOST_IP = '10.0.2.2'; 
+// Production Render URLs
+export const BACKEND_URL = 'https://mmca-backend-pbo2.onrender.com';
+export const ML_SERVICE_URL = 'https://mmca-ml-service-pbo2.onrender.com';
 
-export const BACKEND_URL = `http://${HOST_IP}:3000`;
-export const ML_SERVICE_URL = `http://${HOST_IP}:8000`;
+// Local development URLs (commented out)
+// const HOST_IP = '10.0.2.2'; 
+// export const BACKEND_URL = `http://${HOST_IP}:3000`;
+// export const ML_SERVICE_URL = `http://${HOST_IP}:8000`;
