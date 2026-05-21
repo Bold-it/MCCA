@@ -1,15 +1,23 @@
 import * as admin from 'firebase-admin';
 
-// Initialize Firebase Admin (Assuming service account is provided in ENV or config)
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
-    databaseURL: process.env.FIREBASE_DB_URL,
-  });
+const hasFirebaseCredentials = 
+  process.env.FIREBASE_PROJECT_ID && 
+  process.env.FIREBASE_CLIENT_EMAIL && 
+  process.env.FIREBASE_PRIVATE_KEY;
+
+if (hasFirebaseCredentials) {
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+      databaseURL: process.env.FIREBASE_DB_URL,
+    });
+  }
+} else {
+  console.log('Firebase credentials not provided. Push notifications will be mocked.');
 }
 
 export class NotificationService {
@@ -17,11 +25,16 @@ export class NotificationService {
    * Sends a generic push notification to a user's registered tokens
    */
   static async sendPushNotification(userId: string, title: string, body: string, data: any = {}) {
-    // In a real app, we'd fetch the FCM tokens for the user from the DB
+    console.log(`[Push Notification] To user_${userId}: ${title} - ${body}`, data);
+    
+    if (!hasFirebaseCredentials || !admin.apps.length) {
+      return;
+    }
+
     const message = {
       notification: { title, body },
       data,
-      topic: `user_${userId}`, // Simplified: using user-specific topic
+      topic: `user_${userId}`,
     };
 
     try {
