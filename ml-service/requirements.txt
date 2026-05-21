@@ -3,6 +3,7 @@ uvicorn
 python-multipart
 deepface
 tensorflow
+tf-keras
 scikit-learn
 numpy
 python-jose[cryptography]
