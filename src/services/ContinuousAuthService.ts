@@ -15,7 +15,7 @@ import { BACKEND_URL } from '../config';
  * 4. IoT Context: 10%
  */
 
-let checkInterval: NodeJS.Timeout | null = null;
+let checkInterval: any = null;
 let movementSubscription: any = null;
 
 export const ContinuousAuthService = {

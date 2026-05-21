@@ -244,6 +244,28 @@ router.post('/simulation-preset', async (req, res, next) => {
           }
         });
       }
+    } else if (preset === 'custom') {
+      const forceScore = req.body.forceScore !== undefined ? Number(req.body.forceScore) : 75;
+      const faceConfidence = req.body.faceConfidence !== undefined ? Number(req.body.faceConfidence) : 0.7;
+      const locationAnomaly = req.body.locationAnomaly !== undefined ? !!req.body.locationAnomaly : false;
+      const unusualTime = req.body.unusualTime !== undefined ? !!req.body.unusualTime : false;
+      const iotContext = req.body.iotContext !== undefined ? Number(req.body.iotContext) : 0.8;
+
+      simulationOverride = { forceScore, faceConfidence, locationAnomaly, unusualTime, iotContext };
+      if (session) {
+        await prisma.session.update({
+          where: { id: session.id },
+          data: { trustScore: forceScore }
+        });
+        await prisma.alert.create({
+          data: {
+            userId: session.userId,
+            type: 'SECURITY_ALERT',
+            severity: forceScore < 40 ? 'CRITICAL' : forceScore < 80 ? 'WARNING' : 'INFO',
+            message: `Simulation: Custom trust override applied. Score forced to: ${forceScore}.`,
+          }
+        });
+      }
     } else {
       simulationOverride = null;
       if (session) {

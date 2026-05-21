@@ -1,9 +1,54 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl } from 'react-native';
 import Animated, { FadeInRight, FadeOutLeft, Layout } from 'react-native-reanimated';
+import { Svg, Path, Circle, Rect, Line, Polyline } from 'react-native-svg';
 import { useAlertStore } from '../../store/alertStore';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../theme';
 import { MMCAAlert } from '../../types';
+
+const FaceMismatchIcon = ({ color, size = 22 }: { color: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <Circle cx="9" cy="7" r="4" />
+    <Line x1="17" y1="8" x2="22" y2="13" stroke={COLORS.danger} />
+    <Line x1="22" y1="8" x2="17" y2="13" stroke={COLORS.danger} />
+  </Svg>
+);
+
+const NewDeviceIcon = ({ color, size = 22 }: { color: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+    <Line x1="12" y1="18" x2="12.01" y2="18" />
+    <Path d="M12 6v6m-3-3h6" />
+  </Svg>
+);
+
+const LocationAnomalyIcon = ({ color, size = 22 }: { color: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+    <Circle cx="12" cy="10" r="3" />
+  </Svg>
+);
+
+const TrustDropIcon = ({ color, size = 22 }: { color: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+    <Polyline points="17 18 23 18 23 12" />
+  </Svg>
+);
+
+const IoTAlertIcon = ({ color, size = 22 }: { color: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M23 7l-7 5 7 5V7z" />
+    <Rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+  </Svg>
+);
+
+const ShieldIcon = ({ color, size = 22 }: { color: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+  </Svg>
+);
 
 export const AlertsScreen = () => {
   const { alerts, markAsRead, markAllRead, clearAlerts } = useAlertStore();
@@ -55,7 +100,7 @@ export const AlertsScreen = () => {
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
         }
         contentContainerStyle={styles.listContent}
-        ListEmptyState={<EmptyState />}
+        ListEmptyComponent={<EmptyState />}
       />
     </View>
   );
@@ -78,14 +123,16 @@ const AlertItem = ({ alert, onPress }: { alert: MMCAAlert, onPress: () => void }
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'FACE_MISMATCH': return '👤';
-      case 'NEW_DEVICE': return '📱';
-      case 'LOCATION_ANOMALY': return '📍';
-      case 'TRUST_DROP': return '📉';
-      case 'IOT_ALERT': return '📹';
-      default: return '🛡️';
+      case 'FACE_MISMATCH': return FaceMismatchIcon;
+      case 'NEW_DEVICE': return NewDeviceIcon;
+      case 'LOCATION_ANOMALY': return LocationAnomalyIcon;
+      case 'TRUST_DROP': return TrustDropIcon;
+      case 'IOT_ALERT': return IoTAlertIcon;
+      default: return ShieldIcon;
     }
   };
+
+  const IconComponent = getIcon(alert.type);
 
   return (
     <Animated.View 
@@ -99,7 +146,7 @@ const AlertItem = ({ alert, onPress }: { alert: MMCAAlert, onPress: () => void }
     >
       <Pressable style={styles.alertPressable} onPress={onPress}>
         <View style={styles.alertIcon}>
-          <Text style={{ fontSize: 20 }}>{getIcon(alert.type)}</Text>
+          <IconComponent color={severityColor} size={22} />
         </View>
         <View style={styles.alertBody}>
           <Text style={styles.alertTitle}>{alert.type.replace('_', ' ')}</Text>
@@ -114,7 +161,9 @@ const AlertItem = ({ alert, onPress }: { alert: MMCAAlert, onPress: () => void }
 
 const EmptyState = () => (
   <View style={styles.emptyContainer}>
-    <Text style={{ fontSize: 64, marginBottom: 20 }}>🛡️</Text>
+    <View style={{ marginBottom: 20 }}>
+      <ShieldIcon color={COLORS.success} size={64} />
+    </View>
     <Text style={styles.emptyTitle}>No alerts — you're all clear</Text>
     <Text style={styles.emptySub}>Your system is running normally.</Text>
   </View>

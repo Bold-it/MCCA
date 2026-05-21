@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Dimensions } from 'react-native';
-import { Svg, Ellipse, Defs, Mask, Rect } from 'react-native-svg';
+import { Svg, Ellipse, Defs, Mask, Rect, Path, Circle, Polyline } from 'react-native-svg';
 import { Camera, useCameraDevices } from 'react-native-vision-camera';
 import ReactNativeBiometrics from 'react-native-biometrics';
 import Animated, { FadeIn, SlideInRight, SlideOutLeft } from 'react-native-reanimated';
@@ -9,6 +9,25 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../navigation/types';
 import { useAuthStore } from '../../store/authStore';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../theme';
+
+const FingerprintIcon = ({ color = '#3B82F6', size = 48 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M12 10a2 2 0 0 0-2 2" />
+    <Path d="M14 14a4 4 0 0 0-4-4" />
+    <Path d="M8 12a4 4 0 0 1 8 0" />
+    <Path d="M12 2a10 10 0 0 0-10 10" />
+    <Path d="M12 6a6 6 0 0 0-6 6" />
+    <Path d="M20 12a8 8 0 0 0-8-8" />
+    <Path d="M12 18a6 6 0 0 0 6-6" />
+    <Path d="M12 22a10 10 0 0 0 10-10" />
+  </Svg>
+);
+
+const CheckIcon = ({ color = '#10B981', size = 20 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <Polyline points="20 6 9 17 4 12" />
+  </Svg>
+);
 
 const { width, height } = Dimensions.get('window');
 
@@ -36,11 +55,11 @@ export const EnrolmentScreen = () => {
   const [fingerprintEnrolled, setFingerprintEnrolled] = useState(false);
 
   const devices = useCameraDevices();
-  const device = devices.front;
+  const device = devices.find((d) => d.position === 'front') || devices[0];
 
   useEffect(() => {
     (async () => {
-      const status = await Camera.requestCameraPermission();
+      const status = await (Camera as any).requestCameraPermission();
       setCameraPermission(status === 'authorized');
     })();
   }, []);
@@ -103,20 +122,20 @@ export const EnrolmentScreen = () => {
             <InputField 
               label="Full Name" 
               value={formData.name} 
-              onChangeText={(t) => setFormData({ ...formData, name: t })}
+              onChangeText={(t: string) => setFormData({ ...formData, name: t })}
               error={errors.name}
             />
             <InputField 
               label="Email Address" 
               value={formData.email} 
-              onChangeText={(t) => setFormData({ ...formData, email: t })}
+              onChangeText={(t: string) => setFormData({ ...formData, email: t })}
               keyboardType="email-address"
               error={errors.email}
             />
             <InputField 
               label="6-Digit PIN" 
               value={formData.pin} 
-              onChangeText={(t) => setFormData({ ...formData, pin: t })}
+              onChangeText={(t: string) => setFormData({ ...formData, pin: t })}
               keyboardType="numeric"
               maxLength={6}
               secureTextEntry
@@ -125,7 +144,7 @@ export const EnrolmentScreen = () => {
             <InputField 
               label="Confirm PIN" 
               value={formData.confirmPin} 
-              onChangeText={(t) => setFormData({ ...formData, confirmPin: t })}
+              onChangeText={(t: string) => setFormData({ ...formData, confirmPin: t })}
               keyboardType="numeric"
               maxLength={6}
               secureTextEntry
@@ -182,14 +201,17 @@ export const EnrolmentScreen = () => {
         {step === 3 && (
           <Animated.View entering={SlideInRight} style={styles.biometricStep}>
             <View style={styles.iconCircle}>
-              <Text style={{ fontSize: 40 }}>☝️</Text>
+              <FingerprintIcon color={COLORS.primary} size={48} />
             </View>
             <Text style={styles.instructionLarge}>Enable Fingerprint</Text>
             <Text style={styles.instructionSmall}>Secure your account with native biometric authentication.</Text>
             
             {fingerprintEnrolled ? (
               <View style={styles.successBadge}>
-                <Text style={styles.successText}>Fingerprint Enrolled ✓</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <CheckIcon color={COLORS.success} size={18} />
+                  <Text style={styles.successText}>Fingerprint Enrolled</Text>
+                </View>
               </View>
             ) : (
               <PrimaryButton 
@@ -240,10 +262,14 @@ const InputField = ({ label, error, ...props }: any) => (
   </View>
 );
 
-const SummaryItem = ({ label, status }: { label: string, status: string }) => (
+const SummaryItem = ({ label, status }: { label: string, status: any }) => (
   <View style={styles.summaryItem}>
     <Text style={styles.summaryLabel}>{label}</Text>
-    <Text style={styles.summaryStatus}>{status}</Text>
+    {status === 'Optional' ? (
+      <Text style={styles.summaryStatusText}>{status}</Text>
+    ) : (
+      <CheckIcon color={COLORS.success} size={18} />
+    )}
   </View>
 );
 
@@ -319,6 +345,7 @@ const styles = StyleSheet.create({
   summaryItem: { flexDirection: 'row', justifyContent: 'space-between' },
   summaryLabel: { color: COLORS.textSecondary },
   summaryStatus: { color: COLORS.success, fontWeight: 'bold' },
+  summaryStatusText: { color: COLORS.textMuted, fontWeight: 'bold', fontSize: TYPOGRAPHY.sizes.sm },
   summaryInfo: { color: COLORS.textSecondary, textAlign: 'center', fontSize: TYPOGRAPHY.sizes.sm, lineHeight: 20 },
   errorText: { color: COLORS.danger, textAlign: 'center', marginTop: 100 }
 });

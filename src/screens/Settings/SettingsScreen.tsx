@@ -32,7 +32,7 @@ export const SettingsScreen = () => {
       'Type "DELETE" to confirm account deletion.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: (val) => {
+        { text: 'Delete', style: 'destructive', onPress: (val?: string) => {
           if (val === 'DELETE') logout();
         }}
       ]

@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   pill: {
     paddingHorizontal: SPACING[12],
-    paddingVertical: SPACING[6],
+    paddingVertical: 6,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,

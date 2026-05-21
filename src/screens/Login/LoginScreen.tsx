@@ -10,11 +10,33 @@ import Animated, {
   withSequence,
   FadeIn
 } from 'react-native-reanimated';
-import { Svg, Ellipse, Defs, Mask, Rect } from 'react-native-svg';
+import { Svg, Ellipse, Defs, Mask, Rect, Circle, Path } from 'react-native-svg';
 import { useAuthStore } from '../../store/authStore';
 import { useAlertStore } from '../../store/alertStore';
 import { authApi } from '../../api/authApi';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../theme';
+
+const FingerprintIcon = ({ color = '#3B82F6', size = 48 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M12 10a2 2 0 0 0-2 2" />
+    <Path d="M14 14a4 4 0 0 0-4-4" />
+    <Path d="M8 12a4 4 0 0 1 8 0" />
+    <Path d="M12 2a10 10 0 0 0-10 10" />
+    <Path d="M12 6a6 6 0 0 0-6 6" />
+    <Path d="M20 12a8 8 0 0 0-8-8" />
+    <Path d="M12 18a6 6 0 0 0 6-6" />
+    <Path d="M12 22a10 10 0 0 0 10-10" />
+  </Svg>
+);
+
+const LockIcon = ({ color = '#EF4444', size = 48, style }: { color?: string; size?: number; style?: any }) => (
+  <View style={style}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <Path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </Svg>
+  </View>
+);
 
 const { width, height } = Dimensions.get('window');
 
@@ -31,7 +53,7 @@ export const LoginScreen = () => {
   const addAlert = useAlertStore((state) => state.addAlert);
 
   const devices = useCameraDevices();
-  const device = devices.front;
+  const device = devices.find((d) => d.position === 'front') || devices[0];
 
   // Animations
   const pulseValue = useSharedValue(1);
@@ -142,7 +164,7 @@ export const LoginScreen = () => {
     const seconds = lockTimeRemaining % 60;
     return (
       <View style={[styles.container, styles.center]}>
-        <Text style={{ fontSize: 40, marginBottom: 20 }}>🔒</Text>
+        <LockIcon color={COLORS.danger} size={54} style={{ marginBottom: 20 }} />
         <Text style={styles.title}>System Locked</Text>
         <Text style={styles.errorText}>Too many failed attempts.</Text>
         <Text style={styles.timerText}>{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</Text>
@@ -187,7 +209,7 @@ export const LoginScreen = () => {
           <View style={styles.modeContainer}>
             <Animated.View style={[styles.pulseCircle, animatedPulseStyle]} />
             <View style={styles.iconCircle}>
-              <Text style={{ fontSize: 48 }}>☝️</Text>
+              <FingerprintIcon color={COLORS.primary} size={48} />
             </View>
             <Text style={styles.instruction}>Touch the sensor to authenticate</Text>
             {failedAttempts > 2 && (

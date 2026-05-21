@@ -3,29 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="MMCA Live Simulation and Demo Orchestrator Control Panel.">
-  <title>MMCA Presentation Control Panel</title>
+  <meta name="description" content="MMCA Sentinel Enterprise Command Center. Continuous Authentication Live Monitor.">
+  <title>MMCA Sentinel - Security Command Center</title>
+  
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
   <style>
     :root {
-      --bg-dark: #0a051b;
-      --glass-bg: rgba(25, 18, 48, 0.45);
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --text-main: #f3f1f7;
-      --text-muted: #a49ebd;
-      --primary: #8a2be2;
-      --primary-glow: rgba(138, 43, 226, 0.4);
+      --bg-dark: #070514;
+      --bg-card: rgba(13, 10, 36, 0.6);
+      --glass-border: rgba(255, 255, 255, 0.05);
+      --glass-glow: rgba(139, 92, 246, 0.05);
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --primary: #8b5cf6;
+      --primary-glow: rgba(139, 92, 246, 0.3);
+      --secondary: #06b6d4;
+      --secondary-glow: rgba(6, 182, 212, 0.2);
+      
       --success: #10b981;
-      --success-glow: rgba(16, 185, 129, 0.3);
+      --success-glow: rgba(16, 185, 129, 0.2);
       --warning: #f59e0b;
-      --warning-glow: rgba(245, 158, 11, 0.3);
+      --warning-glow: rgba(245, 158, 11, 0.2);
       --danger: #ef4444;
-      --danger-glow: rgba(239, 68, 68, 0.3);
-      --info: #3b82f6;
+      --danger-glow: rgba(239, 68, 68, 0.2);
+      
+      --sidebar-width: 260px;
     }
 
     * {
@@ -37,9 +46,9 @@
     body {
       background-color: var(--bg-dark);
       background-image: 
-        radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 85% 75%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.03) 0%, transparent 60%);
       background-attachment: fixed;
       font-family: 'Inter', sans-serif;
       color: var(--text-main);
@@ -49,97 +58,146 @@
       overflow-x: hidden;
     }
 
-    h1, h2, h3, .brand {
+    h1, h2, h3, h4, .brand {
       font-family: 'Outfit', sans-serif;
+      letter-spacing: -0.02em;
+    }
+
+    code, pre, .mono {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85em;
     }
 
     header {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
-      padding: 2rem 1.5rem 1rem;
+      padding: 1.5rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      border-bottom: 1px solid var(--glass-border);
+      background: rgba(7, 5, 20, 0.5);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
-    .brand {
-      font-size: 1.8rem;
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      border-radius: 10px;
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    .brand-logo svg {
+      width: 20px;
+      height: 20px;
+      fill: #fff;
+    }
+
+    .brand-name {
+      font-size: 1.4rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+      background: linear-gradient(135deg, #fff 30%, var(--text-muted) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      letter-spacing: -0.5px;
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
 
-    .brand::before {
-      content: '';
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      background: #ec4899;
-      border-radius: 50%;
-      box-shadow: 0 0 15px #ec4899;
+    .brand-tag {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--secondary);
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 700;
     }
 
-    .status-indicator {
+    .system-stats {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      backdrop-filter: blur(10px);
+      gap: 1.5rem;
     }
 
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
+    .stat-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--glass-border);
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+    }
+
+    .stat-badge .dot {
+      width: 6px;
+      height: 6px;
       background-color: var(--success);
       border-radius: 50%;
-      animation: pulse 1.8s infinite;
       box-shadow: 0 0 8px var(--success);
+      animation: pulse-dot 2s infinite;
     }
 
-    @keyframes pulse {
-      0% { transform: scale(0.95); opacity: 0.7; }
-      50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 12px var(--success); }
-      100% { transform: scale(0.95); opacity: 0.7; }
+    @keyframes pulse-dot {
+      0% { opacity: 0.5; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.1); }
+      100% { opacity: 0.5; transform: scale(0.9); }
     }
 
     main {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
-      padding: 1.5rem;
+      padding: 2rem;
       display: grid;
       grid-template-columns: 1fr;
-      gap: 1.5rem;
+      gap: 2rem;
       flex-grow: 1;
     }
 
-    @media (min-width: 900px) {
+    @media (min-width: 1024px) {
       main {
         grid-template-columns: 1.6fr 1fr;
       }
     }
 
     .glass-card {
-      background: var(--glass-bg);
+      background: var(--bg-card);
       border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 2rem;
+      border-radius: 20px;
+      padding: 1.75rem;
       backdrop-filter: blur(20px);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
       position: relative;
       overflow: hidden;
-      transition: transform 0.3s ease, border-color 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
     }
 
     .glass-card::before {
@@ -148,76 +206,92 @@
       top: 0;
       left: 0;
       width: 100%;
-      height: 4px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
     }
 
-    .glass-card:hover {
-      border-color: rgba(255, 255, 255, 0.15);
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding-bottom: 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .card-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
     }
 
     .card-title {
-      font-size: 1.4rem;
+      font-size: 1.15rem;
       font-weight: 700;
-      margin-bottom: 1.5rem;
+      color: #fff;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      padding-bottom: 0.75rem;
+      gap: 0.5rem;
     }
 
-    .subtitle {
-      font-size: 0.9rem;
+    .card-title svg {
+      width: 18px;
+      height: 18px;
+      color: var(--secondary);
+    }
+
+    .card-subtitle {
+      font-size: 0.8rem;
       color: var(--text-muted);
-      font-weight: 400;
     }
 
-    /* Score Ring & Visualization */
-    .score-container {
-      display: flex;
-      flex-direction: column;
+    /* Telemetry Display */
+    .telemetry-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
       align-items: center;
-      justify-content: center;
-      padding: 1.5rem 0;
     }
 
-    @media (min-width: 500px) {
-      .score-container {
-        flex-direction: row;
-        gap: 3rem;
+    @media (min-width: 640px) {
+      .telemetry-row {
+        grid-template-columns: 150px 1fr;
       }
     }
 
-    .ring-wrapper {
+    .gauge-container {
+      display: flex;
+      justify-content: center;
       position: relative;
-      width: 180px;
-      height: 180px;
+      width: 150px;
+      height: 150px;
+      margin: 0 auto;
     }
 
-    svg.ring {
+    .gauge-svg {
       width: 100%;
       height: 100%;
       transform: rotate(-90deg);
     }
 
-    svg.ring circle {
+    .gauge-circle-bg {
       fill: none;
-      stroke-width: 12;
+      stroke: rgba(255, 255, 255, 0.02);
+      stroke-width: 10;
     }
 
-    svg.ring circle.bg {
-      stroke: rgba(255, 255, 255, 0.04);
-    }
-
-    svg.ring circle.progress {
-      stroke: var(--primary);
+    .gauge-circle-val {
+      fill: none;
+      stroke: var(--success);
+      stroke-width: 10;
       stroke-linecap: round;
+      stroke-dasharray: 440;
+      stroke-dashoffset: 440;
       transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.5s ease;
-      box-shadow: 0 0 20px var(--primary-glow);
+      filter: drop-shadow(0 0 4px var(--success-glow));
     }
 
-    .score-text {
+    .gauge-text {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -225,202 +299,319 @@
       text-align: center;
     }
 
-    .score-value {
+    .gauge-score {
       font-family: 'Outfit', sans-serif;
-      font-size: 3.2rem;
+      font-size: 2.8rem;
       font-weight: 800;
       line-height: 1;
-      background: linear-gradient(135deg, #fff 0%, var(--text-muted) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: #fff;
     }
 
-    .score-label {
-      font-size: 0.75rem;
+    .gauge-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 1.5px;
-      color: var(--text-muted);
       margin-top: 2px;
     }
 
-    .score-status-details {
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-      margin-top: 1.5rem;
-      width: 100%;
+    .telemetry-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
     }
 
-    @media (min-width: 500px) {
-      .score-status-details {
-        margin-top: 0;
-        width: auto;
-        flex-grow: 1;
-      }
+    .detail-item {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
     }
 
-    .status-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.6rem 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    .detail-label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    .status-row:last-child {
-      border-bottom: none;
-    }
-
-    .status-row span.label {
-      color: var(--text-muted);
+    .detail-val {
       font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-main);
     }
 
-    .status-row span.value {
-      font-weight: 500;
-      font-size: 0.95rem;
+    /* Live Telemetry Graph */
+    .chart-container {
+      width: 100%;
+      height: 110px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      margin-top: 0.5rem;
     }
 
-    /* Scenario Simulation Controls */
+    .chart-container canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Incident Simulation Presets */
     .preset-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 1rem;
-      margin-top: 1.5rem;
     }
 
-    @media (min-width: 500px) {
+    @media (min-width: 640px) {
       .preset-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
       }
     }
 
-    .preset-btn {
+    .preset-card {
+      background: rgba(255, 255, 255, 0.01);
       border: 1px solid var(--glass-border);
       border-radius: 16px;
-      padding: 1.25rem 1rem;
-      font-family: 'Outfit', sans-serif;
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--text-main);
+      padding: 1.25rem;
       cursor: pointer;
       display: flex;
       flex-direction: column;
+      gap: 0.6rem;
       align-items: flex-start;
-      gap: 0.4rem;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
       text-align: left;
+      position: relative;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .preset-btn::after {
+    .preset-card::after {
       content: '';
       position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      background: radial-gradient(circle at 100% 0%, rgba(255,255,255,0.06), transparent 60%);
-      opacity: 0;
-      transition: opacity 0.25s ease;
+      inset: 0;
+      border-radius: 16px;
+      border: 1.5px solid transparent;
+      pointer-events: none;
+      transition: all 0.25s ease;
     }
 
-    .preset-btn:hover::after {
-      opacity: 1;
-    }
-
-    .preset-btn .btn-desc {
-      font-family: 'Inter', sans-serif;
-      font-size: 0.75rem;
-      font-weight: 400;
-      color: var(--text-muted);
-    }
-
-    /* Preset variant styles */
-    .preset-btn.safe {
-      background: rgba(16, 185, 129, 0.08);
+    .preset-card.safe:hover {
+      background: rgba(16, 185, 129, 0.05);
       border-color: rgba(16, 185, 129, 0.2);
     }
-    .preset-btn.safe:hover {
-      background: rgba(16, 185, 129, 0.15);
+    .preset-card.safe.active::after {
       border-color: var(--success);
-      box-shadow: 0 0 20px var(--success-glow);
-      transform: translateY(-2px);
+      box-shadow: 0 0 15px var(--success-glow) inset;
     }
 
-    .preset-btn.theft {
-      background: rgba(245, 158, 11, 0.08);
+    .preset-card.warning:hover {
+      background: rgba(245, 158, 11, 0.05);
       border-color: rgba(245, 158, 11, 0.2);
     }
-    .preset-btn.theft:hover {
-      background: rgba(245, 158, 11, 0.15);
+    .preset-card.warning.active::after {
       border-color: var(--warning);
-      box-shadow: 0 0 20px var(--warning-glow);
-      transform: translateY(-2px);
+      box-shadow: 0 0 15px var(--warning-glow) inset;
     }
 
-    .preset-btn.lockdown {
-      background: rgba(239, 68, 68, 0.08);
+    .preset-card.danger:hover {
+      background: rgba(239, 68, 68, 0.05);
       border-color: rgba(239, 68, 68, 0.2);
     }
-    .preset-btn.lockdown:hover {
-      background: rgba(239, 68, 68, 0.15);
+    .preset-card.danger.active::after {
       border-color: var(--danger);
-      box-shadow: 0 0 20px var(--danger-glow);
-      transform: translateY(-2px);
+      box-shadow: 0 0 15px var(--danger-glow) inset;
     }
 
-    .preset-btn.clear {
+    .preset-badge {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .preset-card.safe .preset-badge { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .preset-card.warning .preset-badge { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .preset-card.danger .preset-badge { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+    .preset-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .preset-title svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      stroke: currentColor;
+    }
+
+    .preset-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    /* Live Override Slider */
+    .override-control {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      border-radius: 16px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .slider-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .slider-title svg {
+      width: 16px;
+      height: 16px;
+      color: var(--secondary);
+    }
+
+    .slider-value {
+      font-weight: 700;
+      color: var(--secondary);
+    }
+
+    .slider-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .score-slider {
+      flex-grow: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+      transition: background 0.3s;
+      cursor: pointer;
+    }
+
+    .score-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--secondary);
+      box-shadow: 0 0 10px var(--secondary-glow);
+      transition: transform 0.1s;
+    }
+
+    .score-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    .clear-btn {
       background: rgba(255, 255, 255, 0.03);
-      border-color: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      align-self: flex-end;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s ease;
     }
-    .preset-btn.clear:hover {
+
+    .clear-btn:hover {
       background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.3);
-      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
-    .preset-btn.active {
-      border-width: 2px;
+    .clear-btn svg {
+      width: 14px;
+      height: 14px;
     }
-    .preset-btn.active.safe { border-color: var(--success); box-shadow: 0 0 15px var(--success-glow); }
-    .preset-btn.active.theft { border-color: var(--warning); box-shadow: 0 0 15px var(--warning-glow); }
-    .preset-btn.active.lockdown { border-color: var(--danger); box-shadow: 0 0 15px var(--danger-glow); }
 
-    /* Registered Smart Devices list */
+    /* Trusted Context Devices Grid */
     .devices-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 0.8rem;
-      margin-top: 1rem;
+      gap: 1rem;
     }
 
-    @media (min-width: 500px) {
+    @media (min-width: 480px) {
       .devices-grid {
         grid-template-columns: repeat(3, 1fr);
       }
     }
 
     .device-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid var(--glass-border);
       border-radius: 16px;
-      padding: 1rem;
+      padding: 1.2rem;
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
+      gap: 0.75rem;
       align-items: flex-start;
+      position: relative;
+    }
+
+    .device-icon-wrapper {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--secondary);
+    }
+
+    .device-icon-wrapper svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .device-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
     }
 
     .device-name {
       font-size: 0.9rem;
-      font-weight: 600;
+      font-weight: 700;
+      color: #fff;
     }
 
-    .device-platform {
-      font-size: 0.72rem;
-      color: var(--text-muted);
+    .device-meta {
+      font-size: 0.7rem;
+      color: var(--text-dim);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -429,32 +620,30 @@
       display: flex;
       align-items: center;
       gap: 0.35rem;
-      font-size: 0.75rem;
-      font-weight: 500;
+      font-size: 0.7rem;
+      font-weight: 600;
       color: var(--success);
-      margin-top: 0.2rem;
     }
 
     .device-status::before {
       content: '';
-      display: inline-block;
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       background: var(--success);
       border-radius: 50%;
+      box-shadow: 0 0 5px var(--success);
     }
 
-    /* Live Alerts Log */
+    /* Live Security Log */
     .timeline {
       display: flex;
       flex-direction: column;
-      gap: 0.8rem;
-      max-height: 420px;
+      gap: 0.75rem;
+      max-height: 480px;
       overflow-y: auto;
-      padding-right: 0.3rem;
+      padding-right: 0.4rem;
     }
 
-    /* Custom scrollbar for alerts list */
     .timeline::-webkit-scrollbar {
       width: 4px;
     }
@@ -462,41 +651,51 @@
       background: transparent;
     }
     .timeline::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.08);
       border-radius: 2px;
     }
     .timeline::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.15);
     }
 
     .timeline-item {
-      padding: 0.9rem 1.2rem;
-      background: rgba(255, 255, 255, 0.02);
-      border-left: 3px solid var(--info);
-      border-radius: 0 12px 12px 0;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      border-left: 3.5px solid var(--secondary);
+      border-radius: 4px 12px 12px 4px;
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
-      animation: fadeIn 0.4s ease;
+      gap: 0.4rem;
+      animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateX(5px); }
-      to { opacity: 1; transform: translateX(0); }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .timeline-item.CRITICAL { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.03); }
-    .timeline-item.WARNING { border-left-color: var(--warning); background: rgba(245, 158, 11, 0.03); }
-    .timeline-item.INFO { border-left-color: var(--success); background: rgba(16, 185, 129, 0.03); }
+    .timeline-item.CRITICAL {
+      border-left-color: var(--danger);
+      background: rgba(239, 68, 68, 0.02);
+    }
+    .timeline-item.WARNING {
+      border-left-color: var(--warning);
+      background: rgba(245, 158, 11, 0.02);
+    }
+    .timeline-item.INFO {
+      border-left-color: var(--success);
+      background: rgba(16, 185, 129, 0.02);
+    }
 
-    .alert-header {
+    .log-meta {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .alert-badge {
-      font-size: 0.65rem;
+    .log-badge {
+      font-size: 0.6rem;
       font-weight: 700;
       padding: 0.15rem 0.4rem;
       border-radius: 4px;
@@ -504,139 +703,279 @@
       letter-spacing: 0.5px;
     }
 
-    .alert-badge.CRITICAL { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
-    .alert-badge.WARNING { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
-    .alert-badge.INFO { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+    .log-badge.CRITICAL { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    .log-badge.WARNING { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .log-badge.INFO { background: rgba(16, 185, 129, 0.15); color: var(--success); }
 
-    .alert-time {
+    .log-time {
       font-size: 0.72rem;
-      color: var(--text-muted);
+      color: var(--text-dim);
     }
 
-    .alert-msg {
-      font-size: 0.85rem;
-      line-height: 1.35;
+    .log-msg {
+      font-size: 0.82rem;
+      line-height: 1.4;
+      color: #e2e8f0;
       font-weight: 400;
+    }
+
+    .log-action {
+      font-size: 0.75rem;
+      color: var(--secondary);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.1rem;
+    }
+
+    .log-action::before {
+      content: "";
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2306b6d4' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='13 2 3 14 12 14 11 22 21 10 12 10 13 2'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+
+    .empty-state {
+      color: var(--text-dim);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem 0;
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .empty-state svg {
+      width: 24px;
+      height: 24px;
+      color: rgba(255, 255, 255, 0.05);
     }
 
     footer {
       text-align: center;
-      padding: 2rem;
-      color: var(--text-muted);
-      font-size: 0.8rem;
-    }
-
-    .empty-state {
-      color: var(--text-muted);
-      font-style: italic;
-      text-align: center;
-      padding: 2rem 0;
-      font-size: 0.9rem;
+      padding: 2.5rem;
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.02);
+      margin-top: auto;
+      letter-spacing: 0.5px;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="brand">MMCA Platform</div>
-    <div class="status-indicator">
-      <div class="pulse-dot"></div>
-      <span>Simulating Live Presentation</span>
+    <div class="brand-group">
+      <div class="brand-logo">
+        <!-- Shield Icon -->
+        <svg viewBox="0 0 24 24">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div class="brand-name">
+        MMCA Sentinel
+        <span class="brand-tag">v1.4.2-Prod</span>
+      </div>
+    </div>
+    
+    <div class="system-stats">
+      <div class="stat-badge">
+        <span class="dot"></span>
+        <span>Signal Engine: Active</span>
+      </div>
+      <div class="stat-badge">
+        <span style="color: var(--secondary); font-weight: 600;">Supabase DB</span>
+      </div>
     </div>
   </header>
 
   <main>
-    <!-- Left Panel: Core Score & Scenarios -->
-    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+    <!-- Left Column: Security Operations Center Status -->
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
       
-      <!-- Session and Score Display -->
+      <!-- Live Session Telemetry -->
       <div class="glass-card">
-        <div class="card-title">
-          Live Session Monitor
-          <span class="subtitle" id="user-display">Active User: Loading...</span>
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title">
+              <!-- Dashboard Icon -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <line x1="9" y1="3" x2="9" y2="21"/>
+              </svg>
+              Live Telemetry Stream
+            </h3>
+            <span class="card-subtitle" id="user-display">Target Client: Authenticating...</span>
+          </div>
         </div>
-        
-        <div class="score-container">
-          <div class="ring-wrapper">
-            <svg class="ring">
-              <circle class="bg" cx="90" cy="90" r="78" />
-              <circle class="progress" id="score-ring" cx="90" cy="90" r="78" stroke-dasharray="490" stroke-dashoffset="490" />
+
+        <div class="telemetry-row">
+          <div class="gauge-container">
+            <svg class="gauge-svg">
+              <circle class="gauge-circle-bg" cx="75" cy="75" r="70" />
+              <circle class="gauge-circle-val" id="score-ring" cx="75" cy="75" r="70" />
             </svg>
-            <div class="score-text">
-              <div class="score-value" id="score-val">0</div>
-              <div class="score-label">Trust Score</div>
+            <div class="gauge-text">
+              <div class="gauge-score" id="score-val">--</div>
+              <div class="gauge-label">Score</div>
             </div>
           </div>
 
-          <div class="score-status-details">
-            <div class="status-row">
-              <span class="label">Session ID</span>
-              <span class="value" id="session-id" style="font-family: monospace; font-size: 0.75rem;">---</span>
+          <div class="telemetry-details">
+            <div class="detail-item">
+              <div class="detail-label">Active Session ID</div>
+              <div class="detail-val mono" id="session-id" style="font-size: 0.72rem; word-break: break-all;">---</div>
             </div>
-            <div class="status-row">
-              <span class="label">Security Level</span>
-              <span class="value" id="security-level">---</span>
+            <div class="detail-item">
+              <div class="detail-label">Access State</div>
+              <div class="detail-val" id="security-level">---</div>
             </div>
-            <div class="status-row">
-              <span class="label">Step-Up State</span>
-              <span class="value" id="stepup-state">---</span>
+            <div class="detail-item">
+              <div class="detail-label">Step-Up Auth State</div>
+              <div class="detail-val" id="stepup-state">---</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Biometric Model</div>
+              <div class="detail-val" style="color: var(--secondary);">Behavioral/Face</div>
             </div>
           </div>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="telemetryChart"></canvas>
         </div>
       </div>
 
-      <!-- Quick Presets Panel -->
+      <!-- Threat & Scenario Simulation Presets -->
       <div class="glass-card">
-        <div class="card-title">
-          One-Click Quick Presets
-          <span class="subtitle">Inject demo contextual anomalies instantly</span>
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title">
+              <!-- Settings/Sliders Icon -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+              Orchestrate Threat Vectors
+            </h3>
+            <span class="card-subtitle">Trigger contextual anomalies to evaluate system adaptability</span>
+          </div>
         </div>
-        
+
         <div class="preset-grid">
-          <button class="preset-btn safe" id="preset-safe" onclick="setPreset('safe-home')">
-            1. Safe Home Context
-            <span class="btn-desc">Force Score: 98 | Low anomalous activity. Smart TV and Watch are connected.</span>
-          </button>
-          
-          <button class="preset-btn theft" id="preset-theft" onclick="setPreset('device-theft')">
-            2. Device Theft
-            <span class="btn-desc">Force Score: 45 | High movement anomaly & unknown location. Triggers Step-Up.</span>
-          </button>
-          
-          <button class="preset-btn lockdown" id="preset-lockdown" onclick="setPreset('intruder-lockdown')">
-            3. Intruder Lockdown
-            <span class="btn-desc">Force Score: 15 | Unrecognized camera face detected. Session locked.</span>
-          </button>
-          
-          <button class="preset-btn clear" id="preset-clear" onclick="setPreset('clear')">
-            4. Clear Overrides
-            <span class="btn-desc">Reset simulation. Return backend to evaluate real-time signals.</span>
+          <div class="preset-card safe" id="preset-safe" onclick="setPreset('safe-home')">
+            <span class="preset-badge">Secure Context</span>
+            <div class="preset-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              Safe Home
+            </div>
+            <p class="preset-desc">Forces trust score to 98. IoT smartwatch/TV bound. No active step-up required.</p>
+          </div>
+
+          <div class="preset-card warning" id="preset-theft" onclick="setPreset('device-theft')">
+            <span class="preset-badge">Anomaly Alert</span>
+            <div class="preset-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              Motion Hijack
+            </div>
+            <p class="preset-desc">Drops score to 45. Simulates geofence exit and accelerometer anomaly. Prompts Face verify.</p>
+          </div>
+
+          <div class="preset-card danger" id="preset-lockdown" onclick="setPreset('intruder-lockdown')">
+            <span class="preset-badge">Critical Risk</span>
+            <div class="preset-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              Intruder Lock
+            </div>
+            <p class="preset-desc">Drops score to 15. Unrecognized camera signature looking at app. Instantly locks screen.</p>
+          </div>
+        </div>
+
+        <div class="override-control">
+          <div class="slider-header">
+            <div class="slider-title">
+              <!-- Adjust Slider Icon -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><path d="M12 8l4 4-4 4M8 12h8"/>
+              </svg>
+              Manual Trust Score Override
+            </div>
+            <div class="slider-value" id="override-val">100</div>
+          </div>
+          <div class="slider-wrapper">
+            <input type="range" min="0" max="100" value="100" class="score-slider" id="trust-slider" oninput="updateSliderUI(this.value)" onchange="sendCustomOverride(this.value)">
+          </div>
+          <button class="clear-btn" id="preset-clear" onclick="setPreset('clear')">
+            <!-- Reset Icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            Clear Overrides
           </button>
         </div>
       </div>
 
-      <!-- Seeded Smart IoT Devices -->
+    </div>
+
+    <!-- Right Column: Audit Logs & Devices -->
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+      
+      <!-- Trusted Devices Context -->
       <div class="glass-card">
-        <div class="card-title">
-          Registered Trust Context Devices
-          <span class="subtitle">Contextual device binding</span>
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title">
+              <!-- Smartphone/Devices Icon -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+              </svg>
+              Trusted Peripheral Matrix
+            </h3>
+            <span class="card-subtitle">Local smart binding nodes</span>
+          </div>
         </div>
         <div class="devices-grid" id="devices-list">
           <!-- Populated dynamically -->
         </div>
       </div>
 
-    </div>
+      <!-- Live Security Alerts Log -->
+      <div class="glass-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title">
+              <!-- Alert Feed Icon -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+              </svg>
+              Continuous Security Feed
+            </h3>
+            <span class="card-subtitle">Real-time authentication event stream</span>
+          </div>
+        </div>
+        <div class="timeline" id="alerts-feed">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            Polling secure pipeline...
+          </div>
+        </div>
+      </div>
 
-    <!-- Right Panel: Alerts & Notifications Feed -->
-    <div class="glass-card">
-      <div class="card-title">
-        Live Security Alert Log
-        <span class="subtitle">Real-time audit alerts</span>
-      </div>
-      <div class="timeline" id="alerts-feed">
-        <div class="empty-state">Waiting for simulation events...</div>
-      </div>
     </div>
   </main>
 
@@ -654,32 +993,165 @@
     const stepupState = document.getElementById('stepup-state');
     const devicesList = document.getElementById('devices-list');
     const alertsFeed = document.getElementById('alerts-feed');
+    const trustSlider = document.getElementById('trust-slider');
+    const overrideVal = document.getElementById('override-val');
+    
+    // Circumference = 2 * PI * r = 2 * 3.14159 * 70 = ~439.8
+    const totalLength = 439.8; 
+    ring.style.strokeDasharray = totalLength;
 
-    const totalLength = 2 * Math.PI * 78; // Circumference = ~490
+    // Telemetry Graph setup
+    const canvas = document.getElementById('telemetryChart');
+    const ctx = canvas.getContext('2d');
+    const scoreHistory = [];
+    const maxHistoryPoints = 25;
 
-    function setScore(score) {
+    // Responsive Canvas
+    function resizeCanvas() {
+      const rect = canvas.parentNode.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = 110 * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    setTimeout(resizeCanvas, 100);
+
+    function updateSliderUI(val) {
+      overrideVal.innerText = val;
+    }
+
+    function addScoreToHistory(score) {
+      scoreHistory.push(score);
+      if (scoreHistory.length > maxHistoryPoints) {
+        scoreHistory.shift();
+      }
+      drawHistoryGraph();
+    }
+
+    function drawHistoryGraph() {
+      const w = canvas.width / window.devicePixelRatio;
+      const h = 110;
+      ctx.clearRect(0, 0, w, h);
+      
+      if (scoreHistory.length < 2) return;
+
+      // Draw Grid Lines (Horizontal and Vertical)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+      ctx.lineWidth = 1;
+      for (let y = 20; y < h; y += 30) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+      for (let x = 0; x < w; x += 50) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+
+      const points = [];
+      const step = w / (maxHistoryPoints - 1);
+
+      // Map scores to coordinates
+      for (let i = 0; i < scoreHistory.length; i++) {
+        const x = i * step;
+        const normalizedY = (scoreHistory[i] / 100);
+        // Map 0-100 score to canvas height (leaving 10px padding top/bottom)
+        const y = h - 15 - (normalizedY * (h - 30));
+        points.push({ x, y });
+      }
+
+      // Draw Gradient Area under curve
+      const gradient = ctx.createLinearGradient(0, 0, 0, h);
+      gradient.addColorStop(0, 'rgba(139, 92, 246, 0.15)');
+      gradient.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
+      ctx.fillStyle = gradient;
+
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, h);
+      
+      // Draw smooth line curves
+      for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[i];
+        const p1 = points[i + 1];
+        const cpX = (p0.x + p1.x) / 2;
+        if (i === 0) {
+          ctx.lineTo(p0.x, p0.y);
+        }
+        ctx.quadraticCurveTo(p0.x, p0.y, cpX, (p0.y + p1.y) / 2);
+      }
+      const lastPt = points[points.length - 1];
+      ctx.lineTo(lastPt.x, lastPt.y);
+      ctx.lineTo(lastPt.x, h);
+      ctx.closePath();
+      ctx.fill();
+
+      // Draw Line
+      ctx.beginPath();
+      ctx.strokeStyle = '#a78bfa';
+      ctx.shadowColor = 'rgba(167, 139, 250, 0.5)';
+      ctx.shadowBlur = 8;
+      ctx.lineWidth = 2.5;
+
+      for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[i];
+        const p1 = points[i + 1];
+        const cpX = (p0.x + p1.x) / 2;
+        if (i === 0) {
+          ctx.moveTo(p0.x, p0.y);
+        }
+        ctx.quadraticCurveTo(p0.x, p0.y, cpX, (p0.y + p1.y) / 2);
+      }
+      ctx.lineTo(lastPt.x, lastPt.y);
+      ctx.stroke();
+
+      // Draw glowing pulse indicator dot at the latest point
+      if (points.length > 0) {
+        const latest = points[points.length - 1];
+        
+        ctx.beginPath();
+        ctx.arc(latest.x, latest.y, 6, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(167, 139, 250, 0.4)';
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.arc(latest.x, latest.y, 3, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+      }
+
+      // Reset shadow
+      ctx.shadowBlur = 0;
+    }
+
+    function setScoreRing(score) {
       scoreVal.innerText = score;
       const offset = totalLength - (score / 100) * totalLength;
       ring.style.strokeDashoffset = offset;
 
-      // Color coding progress bar based on score severity
+      // Color coding & glow matching based on score
       if (score >= 80) {
         ring.style.stroke = 'var(--success)';
+        ring.style.filter = 'drop-shadow(0 0 5px rgba(16, 185, 129, 0.5))';
         securityLevel.innerText = 'HIGH TRUST (Unrestricted)';
         securityLevel.style.color = 'var(--success)';
-        stepupState.innerText = 'NONE';
+        stepupState.innerText = 'NOMINAL (Silent Monitor)';
         stepupState.style.color = 'var(--text-muted)';
       } else if (score >= 40) {
         ring.style.stroke = 'var(--warning)';
-        securityLevel.innerText = 'MEDIUM TRUST (Step-Up Guard)';
+        ring.style.filter = 'drop-shadow(0 0 5px rgba(245, 158, 11, 0.5))';
+        securityLevel.innerText = 'MEDIUM TRUST (Caution)';
         securityLevel.style.color = 'var(--warning)';
-        stepupState.innerText = 'PENDING CHALLENGE';
+        stepupState.innerText = 'STEP-UP BIOMETRICS CHALLENGE';
         stepupState.style.color = 'var(--warning)';
       } else {
         ring.style.stroke = 'var(--danger)';
-        securityLevel.innerText = 'LOW TRUST (SESSION LOCKDOWN)';
+        ring.style.filter = 'drop-shadow(0 0 5px rgba(239, 68, 68, 0.5))';
+        securityLevel.innerText = 'CRITICAL (Lockdown)';
         securityLevel.style.color = 'var(--danger)';
-        stepupState.innerText = 'LOCKED';
+        stepupState.innerText = 'SESSION LOCKOUT INITIATED';
         stepupState.style.color = 'var(--danger)';
       }
     }
@@ -696,6 +1168,19 @@
         const data = await response.json();
         if (data.success) {
           updateActivePresetUI(presetName);
+          if (presetName === 'safe-home') {
+            trustSlider.value = 98;
+            updateSliderUI(98);
+          } else if (presetName === 'device-theft') {
+            trustSlider.value = 45;
+            updateSliderUI(45);
+          } else if (presetName === 'intruder-lockdown') {
+            trustSlider.value = 15;
+            updateSliderUI(15);
+          } else if (presetName === 'clear') {
+            trustSlider.value = 100;
+            updateSliderUI(100);
+          }
           pollStatus(); // Immediate refresh
         }
       } catch (err) {
@@ -703,12 +1188,50 @@
       }
     }
 
+    async function sendCustomOverride(score) {
+      try {
+        const response = await fetch(`${API_BASE}/api/auth/simulation-preset`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            preset: 'custom',
+            forceScore: Number(score)
+          })
+        });
+        const data = await response.json();
+        if (data.success) {
+          updateActivePresetUI('custom');
+          pollStatus(); // Immediate refresh
+        }
+      } catch (err) {
+        console.error('Error setting custom override:', err);
+      }
+    }
+
     function updateActivePresetUI(activePreset) {
-      document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.preset-card').forEach(card => card.classList.remove('active'));
       if (activePreset === 'safe-home') document.getElementById('preset-safe').classList.add('active');
       if (activePreset === 'device-theft') document.getElementById('preset-theft').classList.add('active');
       if (activePreset === 'intruder-lockdown') document.getElementById('preset-lockdown').classList.add('active');
-      if (activePreset === 'clear') document.getElementById('preset-clear').classList.add('active');
+    }
+
+    // Inline SVGs for devices
+    const deviceIcons = {
+      watch: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18V6c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2"/><circle cx="12" cy="12" r="3"/></svg>`,
+      tv: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="15" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="18" x2="12" y2="21"/></svg>`,
+      mobile: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`,
+      desktop: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="2" y1="20" x2="22" y2="20"/><line x1="12" y1="17" x2="12" y2="20"/></svg>`
+    };
+
+    function getDeviceIcon(type, name) {
+      const lowerType = type.toLowerCase();
+      const lowerName = name.toLowerCase();
+      if (lowerType.includes('watch') || lowerName.includes('watch')) return deviceIcons.watch;
+      if (lowerType.includes('tv') || lowerName.includes('tv')) return deviceIcons.tv;
+      if (lowerType.includes('mobile') || lowerType.includes('phone')) return deviceIcons.mobile;
+      return deviceIcons.desktop;
     }
 
     async function pollStatus() {
@@ -719,19 +1242,27 @@
         
         if (data.success) {
           // 1. User Info
-          userDisplay.innerText = `Active User: ${data.user.name} (${data.user.email})`;
+          userDisplay.innerText = `Identity Signature: ${data.user.name} <${data.user.email}>`;
 
           // 2. Session & Trust Score
           if (data.session) {
-            setScore(data.session.trustScore);
+            setScoreRing(data.session.trustScore);
             sessionId.innerText = data.session.id;
+            addScoreToHistory(data.session.trustScore);
+            
+            // Adjust slider indicator if not active slider drag
+            if (data.currentPreset !== 'custom') {
+              trustSlider.value = data.session.trustScore;
+              updateSliderUI(data.session.trustScore);
+            }
           } else {
-            setScore(0);
-            sessionId.innerText = 'NO ACTIVE SESSION';
-            securityLevel.innerText = 'IDLE (No active login)';
-            securityLevel.style.color = 'var(--text-muted)';
-            stepupState.innerText = '---';
-            stepupState.style.color = 'var(--text-muted)';
+            setScoreRing(0);
+            sessionId.innerText = 'NO ACTIVE INSTANCE';
+            securityLevel.innerText = 'IDLE (Awaiting Login)';
+            securityLevel.style.color = 'var(--text-dim)';
+            stepupState.innerText = 'N/A';
+            stepupState.style.color = 'var(--text-dim)';
+            addScoreToHistory(0);
           }
 
           // 3. Highlight Preset
@@ -741,31 +1272,47 @@
           if (data.devices && data.devices.length > 0) {
             devicesList.innerHTML = data.devices.map(dev => `
               <div class="device-card">
-                <div class="device-name">${dev.name}</div>
-                <div class="device-platform">${dev.platform} (${dev.type})</div>
-                <div class="device-status">CONNECTED</div>
+                <div class="device-icon-wrapper">
+                  ${getDeviceIcon(dev.type, dev.name)}
+                </div>
+                <div class="device-info">
+                  <div class="device-name">${dev.name}</div>
+                  <div class="device-meta">${dev.platform} | ${dev.type}</div>
+                </div>
+                <div class="device-status">ONLINE</div>
               </div>
             `).join('');
           } else {
-            devicesList.innerHTML = `<div class="empty-state">No IoT devices registered. Run seed script.</div>`;
+            devicesList.innerHTML = `<div class="empty-state">No context devices registered. Seed Supabase database.</div>`;
           }
 
           // 5. Alerts
           if (data.alerts && data.alerts.length > 0) {
             alertsFeed.innerHTML = data.alerts.map(alert => {
               const timeStr = new Date(alert.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+              
+              let actionText = '';
+              if (alert.severity === 'CRITICAL') {
+                actionText = 'Active lockdown triggered. Locking token.';
+              } else if (alert.severity === 'WARNING') {
+                actionText = 'MFA challenge requested. Awaiting Face ID.';
+              } else {
+                actionText = 'Continuously verifying behavioural signatures.';
+              }
+
               return `
                 <div class="timeline-item ${alert.severity}">
-                  <div class="alert-header">
-                    <span class="alert-badge ${alert.severity}">${alert.severity}</span>
-                    <span class="alert-time">${timeStr}</span>
+                  <div class="log-meta">
+                    <span class="log-badge ${alert.severity}">${alert.severity}</span>
+                    <span class="log-time">${timeStr}</span>
                   </div>
-                  <div class="alert-msg">${alert.message}</div>
+                  <div class="log-msg">${alert.message}</div>
+                  <div class="log-action">${actionText}</div>
                 </div>
               `;
             }).join('');
           } else {
-            alertsFeed.innerHTML = `<div class="empty-state">No simulation events logged yet.</div>`;
+            alertsFeed.innerHTML = `<div class="empty-state">Secure audit log buffer is empty.</div>`;
           }
         }
       } catch (err) {
@@ -773,7 +1320,7 @@
       }
     }
 
-    // Start polling immediately
+    // Initialize layout and polling
     pollStatus();
     setInterval(pollStatus, 2000);
   </script>

@@ -7,7 +7,7 @@ import Animated, {
   useAnimatedProps,
   interpolateColor
 } from 'react-native-reanimated';
-import { Svg, Circle } from 'react-native-svg';
+import { Svg, Circle, Path, Line, Rect } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../../store/authStore';
 import { useTrustStore } from '../../store/trustStore';
@@ -16,6 +16,81 @@ import { useDeviceStore } from '../../store/deviceStore';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, getTrustColor } from '../../theme';
 import { TelemetryChart } from '../../components/common/TelemetryChart';
 import { BiometricService } from '../../services/BiometricService';
+
+// Vector Icon Components
+const BellIcon = ({ color = '#9CA3AF', size = 20 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+    <Path d="M13.73 21a2 2 0 0 1-3.46 0" />
+  </Svg>
+);
+
+const ShieldIcon = ({ color = '#3B82F6', size = 20 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+  </Svg>
+);
+
+const FaceIcon = ({ color = '#3B82F6', size = 24 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M18 8h.01M6 8h.01" />
+    <Path d="M9 16c.3-.5.8-1 1.5-1s1.2.5 1.5 1" />
+    <Circle cx="12" cy="12" r="10" />
+  </Svg>
+);
+
+const FingerprintIcon = ({ color = '#3B82F6', size = 24 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M12 10a2 2 0 0 0-2 2" />
+    <Path d="M14 14a4 4 0 0 0-4-4" />
+    <Path d="M8 12a4 4 0 0 1 8 0" />
+    <Path d="M12 2a10 10 0 0 0-10 10" />
+    <Path d="M12 6a6 6 0 0 0-6 6" />
+    <Path d="M20 12a8 8 0 0 0-8-8" />
+    <Path d="M12 18a6 6 0 0 0 6-6" />
+    <Path d="M12 22a10 10 0 0 0 10-10" />
+  </Svg>
+);
+
+const VoiceIcon = ({ color = '#3B82F6', size = 24 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M12 1v11" />
+    <Path d="M19 8c0 3.87-3.13 7-7 7s-7-3.13-7-7" />
+    <Path d="M12 15v6" />
+    <Rect x="9" y="3" width="6" height="8" rx="3" ry="3" />
+  </Svg>
+);
+
+const BehaviorIcon = ({ color = '#3B82F6', size = 24 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M12 2v20" />
+    <Path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+  </Svg>
+);
+
+const LaptopIcon = ({ color = '#3B82F6', size = 24 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+    <Line x1="2" y1="20" x2="22" y2="20" />
+    <Line x1="12" y1="17" x2="12" y2="20" />
+  </Svg>
+);
+
+const PhoneIcon = ({ color = '#3B82F6', size = 24 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+    <Line x1="12" y1="18" x2="12.01" y2="18" />
+  </Svg>
+);
+
+const WatchIcon = ({ color = '#3B82F6', size = 24 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Rect x="6" y="4" width="12" height="16" rx="3" />
+    <Path d="M9 4V2h6v2M9 20v2h6v-2" />
+    <Circle cx="12" cy="12" r="3" />
+  </Svg>
+);
+
 
 const { width } = Dimensions.get('window');
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -105,14 +180,16 @@ export const DashboardScreen = () => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <View style={styles.shieldIcon} />
+            <View style={styles.shieldIconWrapper}>
+              <ShieldIcon color="#fff" size={20} />
+            </View>
             <View>
               <Text style={styles.greeting}>{greeting},</Text>
               <Text style={styles.userName}>{user?.name || 'User'}</Text>
             </View>
           </View>
           <Pressable style={styles.bellBtn} onPress={() => navigation.navigate('Alerts')}>
-            <Text style={{ fontSize: 24 }}>🔔</Text>
+            <BellIcon color={COLORS.textPrimary} size={22} />
             {unreadCount > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{unreadCount}</Text>
@@ -158,10 +235,10 @@ export const DashboardScreen = () => {
         {/* SECTION 2: Active Methods */}
         <Text style={styles.sectionTitle}>Active Auth Methods</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
-          <MethodCard icon="👤" name="Face" active={true} />
-          <MethodCard icon="☝️" name="Finger" active={user?.enrolledMethods.includes('FINGERPRINT')} />
-          <MethodCard icon="🗣️" name="Voice" active={false} />
-          <MethodCard icon="📱" name="Behaviour" active={true} />
+          <MethodCard icon={FaceIcon} name="Face" active={true} />
+          <MethodCard icon={FingerprintIcon} name="Finger" active={user?.enrolledMethods.includes('FINGERPRINT') || false} />
+          <MethodCard icon={VoiceIcon} name="Voice" active={false} />
+          <MethodCard icon={BehaviorIcon} name="Behaviour" active={true} />
         </ScrollView>
 
         {/* SECTION 3: Recent Activity */}
@@ -202,39 +279,54 @@ export const DashboardScreen = () => {
   );
 };
 
-const MethodCard = ({ icon, name, active }: any) => (
+const MethodCard = ({ icon: Icon, name, active }: { icon: any; name: string; active: boolean }) => (
   <View style={styles.methodCard}>
-    <Text style={{ fontSize: 24 }}>{icon}</Text>
+    <Icon color={active ? COLORS.primary : COLORS.textMuted} size={28} />
     <Text style={styles.methodName}>{name}</Text>
     <View style={[styles.statusDot, { backgroundColor: active ? COLORS.success : COLORS.textMuted }]} />
   </View>
 );
 
-const ActivityItem = ({ alert }: { alert: any }) => (
-  <View style={styles.activityItem}>
-    <View style={[styles.activityIcon, { backgroundColor: alert.severity === 'CRITICAL' ? COLORS.danger : COLORS.surface }]}>
-      <Text style={{ fontSize: 16 }}>🛡️</Text>
+const ActivityItem = ({ alert }: { alert: any }) => {
+  const severityColor = alert.severity === 'CRITICAL' ? COLORS.danger : alert.severity === 'WARNING' ? COLORS.warning : COLORS.success;
+  return (
+    <View style={styles.activityItem}>
+      <View style={[styles.activityIcon, { backgroundColor: alert.severity === 'CRITICAL' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)' }]}>
+        <ShieldIcon color={severityColor} size={18} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.activityMsg}>{alert.message}</Text>
+        <Text style={styles.activityTime}>{new Date(alert.timestamp).toLocaleTimeString()}</Text>
+      </View>
+      <View style={[styles.severityBadge, { backgroundColor: alert.severity === 'CRITICAL' ? COLORS.danger : alert.severity === 'WARNING' ? COLORS.warning : COLORS.primary }]}>
+        <Text style={styles.severityText}>{alert.severity}</Text>
+      </View>
     </View>
-    <View style={{ flex: 1 }}>
-      <Text style={styles.activityMsg}>{alert.message}</Text>
-      <Text style={styles.activityTime}>{new Date(alert.timestamp).toLocaleTimeString()}</Text>
-    </View>
-    <View style={[styles.severityBadge, { backgroundColor: alert.severity === 'WARNING' ? COLORS.warning : COLORS.primary }]}>
-      <Text style={styles.severityText}>{alert.severity}</Text>
-    </View>
-  </View>
-);
+  );
+};
 
-const DeviceCard = ({ device }: { device: any }) => (
-  <View style={styles.deviceCard}>
-    <Text style={{ fontSize: 20 }}>💻</Text>
-    <Text style={styles.deviceName}>{device.name}</Text>
-    <View style={styles.platformBadge}>
-      <Text style={styles.platformText}>{device.platform}</Text>
+const DeviceCard = ({ device }: { device: any }) => {
+  const getDeviceIcon = (platform: string, name: string) => {
+    const p = platform.toLowerCase();
+    const n = name.toLowerCase();
+    if (p.includes('watch') || n.includes('watch')) return WatchIcon;
+    if (p.includes('phone') || p.includes('android') || p.includes('ios') || n.includes('phone')) return PhoneIcon;
+    return LaptopIcon;
+  };
+  const Icon = getDeviceIcon(device.platform, device.name);
+  return (
+    <View style={styles.deviceCard}>
+      <View style={styles.deviceIconWrapper}>
+        <Icon color={COLORS.secondary} size={22} />
+      </View>
+      <Text style={styles.deviceName}>{device.name}</Text>
+      <View style={styles.platformBadge}>
+        <Text style={styles.platformText}>{device.platform}</Text>
+      </View>
+      <Text style={[styles.deviceStatus, { color: device.status === 'ONLINE' ? COLORS.success : COLORS.danger }]}>{device.status}</Text>
     </View>
-    <Text style={[styles.deviceStatus, { color: device.status === 'ONLINE' ? COLORS.success : COLORS.danger }]}>{device.status}</Text>
-  </View>
-);
+  );
+};
 
 const ActionButton = ({ label, color }: any) => (
   <Pressable style={[styles.actionBtn, { borderColor: color }]}>
@@ -247,7 +339,7 @@ const styles = StyleSheet.create({
   scrollContent: { padding: SPACING[24], paddingBottom: 100 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING[32], paddingTop: SPACING[24] },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING[12] },
-  shieldIcon: { width: 40, height: 40, backgroundColor: COLORS.primary, borderRadius: RADIUS.sm },
+  shieldIconWrapper: { width: 40, height: 40, backgroundColor: COLORS.primary, borderRadius: RADIUS.sm, justifyContent: 'center', alignItems: 'center' },
   greeting: { color: COLORS.textSecondary, fontSize: TYPOGRAPHY.sizes.sm },
   userName: { color: COLORS.textPrimary, fontSize: TYPOGRAPHY.sizes.lg, fontWeight: 'bold' },
   bellBtn: { width: 44, height: 44, borderRadius: RADIUS.md, backgroundColor: COLORS.surface, justifyContent: 'center', alignItems: 'center' },
@@ -267,8 +359,8 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   viewAll: { color: COLORS.primary, fontSize: TYPOGRAPHY.sizes.sm },
   row: { gap: SPACING[16] },
-  methodCard: { width: 100, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, padding: SPACING[16], alignItems: 'center', gap: SPACING[8], borderWidth: 1, borderColor: COLORS.border },
-  methodName: { color: COLORS.textPrimary, fontSize: TYPOGRAPHY.sizes.xs, fontWeight: '500' },
+  methodCard: { width: 100, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, padding: SPACING[16], alignItems: 'center', gap: SPACING[12], borderWidth: 1, borderColor: COLORS.border },
+  methodName: { color: COLORS.textPrimary, fontSize: TYPOGRAPHY.sizes.xs, fontWeight: '600' },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
   activityFeed: { gap: SPACING[12] },
   activityItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, padding: SPACING[16], borderRadius: RADIUS.md, gap: SPACING[12], borderWidth: 1, borderColor: COLORS.border },
@@ -277,12 +369,13 @@ const styles = StyleSheet.create({
   activityTime: { color: COLORS.textMuted, fontSize: 10, marginTop: 2 },
   severityBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
   severityText: { color: '#fff', fontSize: 8, fontWeight: 'bold' },
-  deviceCard: { width: 130, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, padding: SPACING[16], gap: SPACING[8], borderWidth: 1, borderColor: COLORS.border },
+  deviceCard: { width: 130, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, padding: SPACING[16], gap: 6, borderWidth: 1, borderColor: COLORS.border },
   deviceName: { color: COLORS.textPrimary, fontSize: TYPOGRAPHY.sizes.sm, fontWeight: 'bold' },
+  deviceIconWrapper: { width: 36, height: 36, borderRadius: RADIUS.sm, backgroundColor: COLORS.elevated, justifyContent: 'center', alignItems: 'center', marginBottom: SPACING[4] },
   platformBadge: { backgroundColor: COLORS.elevated, alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   platformText: { color: COLORS.textSecondary, fontSize: 8 },
   deviceStatus: { fontSize: 10, fontWeight: 'bold' },
-  addDeviceCard: { width: 130, height: 110, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderStyle: 'dashed', borderWidth: 1, borderColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', gap: 8 },
+  addDeviceCard: { width: 130, height: 120, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderStyle: 'dashed', borderWidth: 1, borderColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', gap: 8 },
   addDeviceText: { color: COLORS.primary, fontSize: TYPOGRAPHY.sizes.xs, fontWeight: 'bold' },
   quickActions: { gap: SPACING[12], marginTop: SPACING[32] },
   actionBtn: { height: 50, borderRadius: RADIUS.md, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },

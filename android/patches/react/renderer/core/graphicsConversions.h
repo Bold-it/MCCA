@@ -68,7 +68,7 @@ inline folly::dynamic toDynamic(const YGValue &dimension)
     case YGUnitPoint:
       return dimension.value;
     case YGUnitPercent:
-      return std::format("{}%", dimension.value);
+      return std::to_string(dimension.value) + "%";
   }
 
   return nullptr;

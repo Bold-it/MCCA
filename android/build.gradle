@@ -36,17 +36,56 @@ subprojects {
   }
 }
 
-subprojects {
-  pluginManager.withPlugin("com.android.library") {
-    android {
-      defaultConfig {
-        externalNativeBuild {
-          cmake {
-            cppFlags "-isystem \"C:/Users/Barbara Awuitor/Documents/pw/MMCAApp/android/patches\""
-          }
-        }
-      }
+// Returns the Windows 8.3 short path to avoid spaces-in-path issues with CMake.
+def getShortPath(String path) {
+    if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+        try {
+            def escaped = path.replace('/', '\\')
+            def cmd = ["powershell.exe", "-Command",
+                "(New-Object -ComObject Scripting.FileSystemObject).GetFolder('${escaped}').ShortPath"]
+            def process = cmd.execute()
+            process.waitFor()
+            if (process.exitValue() == 0) {
+                return process.text.trim().replace('\\', '/')
+            }
+        } catch (Exception e) { /* fallback below */ }
     }
-  }
+    return path
 }
 
+// Force-include the std::format shim for NDK r26 across ALL subprojects.
+// The shim is a no-op when std::format is natively available (__cpp_lib_format defined).
+def applyStdFormatShim = { proj ->
+    proj.android {
+        defaultConfig {
+            externalNativeBuild {
+                cmake {
+                    def shimPath = getShortPath("${rootProject.projectDir.absolutePath}/android/patches/stdformat.h")
+                    cppFlags "-std=c++20", "-include \"${shimPath}\""
+                    arguments "-DCMAKE_CXX_STANDARD=20", "-DCMAKE_CXX_STANDARD_REQUIRED=ON"
+                }
+            }
+        }
+    }
+}
+
+subprojects { proj ->
+    pluginManager.withPlugin("com.android.library") {
+        if (proj.state.executed) {
+            applyStdFormatShim(proj)
+        } else {
+            proj.afterEvaluate {
+                applyStdFormatShim(proj)
+            }
+        }
+    }
+    pluginManager.withPlugin("com.android.application") {
+        if (proj.state.executed) {
+            applyStdFormatShim(proj)
+        } else {
+            proj.afterEvaluate {
+                applyStdFormatShim(proj)
+            }
+        }
+    }
+}

@@ -2,11 +2,21 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, BackHandler, Dimensions } from 'react-native';
 import { Camera, useCameraDevices } from 'react-native-vision-camera';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { Svg, Ellipse, Defs, Mask, Rect } from 'react-native-svg';
+import { Svg, Ellipse, Defs, Mask, Rect, Path, Circle } from 'react-native-svg';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTrustStore } from '../../store/trustStore';
 import { useAuthStore } from '../../store/authStore';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../theme';
+
+const WarningShieldIcon = ({ color = '#F59E0B', size = 48, style }: { color?: string; size?: number; style?: any }) => (
+  <View style={style}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <Path d="M12 8v4" />
+      <Path d="M12 16h.01" />
+    </Svg>
+  </View>
+);
 
 const { width, height } = Dimensions.get('window');
 
@@ -24,7 +34,7 @@ export const StepUpAuthScreen = () => {
   const [failures, setFailures] = useState(0);
 
   const devices = useCameraDevices();
-  const device = devices.front;
+  const device = devices.find((d) => d.position === 'front') || devices[0];
 
   // Disable hardware back button on Android
   useEffect(() => {
@@ -66,7 +76,7 @@ export const StepUpAuthScreen = () => {
       <Animated.View entering={FadeInUp} style={styles.modal}>
         {/* Warning Header */}
         <View style={styles.header}>
-          <Text style={styles.warningIcon}>⚠️</Text>
+          <WarningShieldIcon color={COLORS.warning} size={48} style={{ marginBottom: 12 }} />
           <Text style={styles.title}>Security Verification</Text>
           <View style={styles.scoreBadge}>
             <Text style={styles.scoreText}>Trust Score: {trustScore}/100</Text>
