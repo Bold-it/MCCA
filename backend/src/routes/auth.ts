@@ -104,6 +104,12 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
+export let latestTouchMetrics: {
+  gesture: string;
+  calibration: string;
+  similarity: number;
+} | null = null;
+
 export let simulationOverride: {
   forceScore?: number;
   faceConfidence?: number;
@@ -161,6 +167,28 @@ router.post('/continuous-check', authMiddleware, async (req: AuthRequest, res, n
 
     if (simulationOverride && simulationOverride.forceScore !== undefined) {
       newScore = simulationOverride.forceScore;
+    }
+
+    // Intercept Touch-ABNet metrics to generate real-time alerts & feed updates
+    const touchMetrics = signals?.touchMetrics;
+    if (touchMetrics) {
+      latestTouchMetrics = {
+        gesture: touchMetrics.gesture,
+        calibration: touchMetrics.calibration,
+        similarity: touchMetrics.similarity
+      };
+      
+      const similarityPct = Math.round(touchMetrics.similarity * 100);
+      const alertMsg = `Touch-ABNet: Classified Gesture [${touchMetrics.gesture}] | Similarity: ${similarityPct}% | Status: ${touchMetrics.calibration}`;
+      
+      await prisma.alert.create({
+        data: {
+          userId: session.userId,
+          type: 'TOUCH_ALERT',
+          severity: 'INFO',
+          message: alertMsg,
+        }
+      });
     }
 
     await prisma.session.update({
@@ -327,7 +355,8 @@ router.get('/simulation-status', async (req, res, next) => {
         (simulationOverride.forceScore === 98 ? 'safe-home' : 
          simulationOverride.forceScore === 45 ? 'device-theft' : 
          simulationOverride.forceScore === 15 ? 'intruder-lockdown' : 'custom') 
-        : 'none'
+        : 'none',
+      latestTouchMetrics
     });
   } catch (error) {
     next(error);

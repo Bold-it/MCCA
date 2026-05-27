@@ -217,117 +217,200 @@ async def verify_face(req: FaceVerifyRequest, x_ml_service_key: str = Header(...
     except Exception as e:
         return {"success": False, "error": str(e)}
 
-# --- Behavioural Biometrics Helpers & Routes ---
+# --- Touch-ABNet Models & Endpoints ---
 
-def extract_behaviour_features(events: List[TouchEvent]) -> List[float]:
-    # Ensure events are sorted by timestamp
-    sorted_events = sorted(events, key=lambda e: e.timestamp)
-    
-    hold_times = []
-    flight_times = []
-    pressures = [e.pressure for e in sorted_events if e.pressure > 0]
-    
-    press_time = None
-    last_release_time = None
-    
-    swipe_coords = []
-    velocities = []
-    
-    for event in sorted_events:
-        if event.type == 'press':
-            press_time = event.timestamp
-            if last_release_time is not None:
-                # flight time is time between last release and current press
-                flight_times.append(event.timestamp - last_release_time)
-            swipe_coords = [(event.x, event.y, event.timestamp)]
-        elif event.type == 'release':
-            if press_time is not None:
-                hold_times.append(event.timestamp - press_time)
-                press_time = None
-            last_release_time = event.timestamp
-            if len(swipe_coords) > 1:
-                # Calculate velocity of the swipe
-                total_dist = 0.0
-                for j in range(1, len(swipe_coords)):
-                    dx = swipe_coords[j][0] - swipe_coords[j-1][0]
-                    dy = swipe_coords[j][1] - swipe_coords[j-1][1]
-                    dist = np.sqrt(dx*dx + dy*dy)
-                    total_dist += dist
-                dt_total = swipe_coords[-1][2] - swipe_coords[0][2]
-                if dt_total > 0:
-                    velocities.append(total_dist / dt_total)
-            swipe_coords = []
-        elif event.type in ['move', 'drag']:
-            if press_time is not None:
-                swipe_coords.append((event.x, event.y, event.timestamp))
-                
-    mean_hold = float(np.mean(hold_times)) if hold_times else 150.0  # ms default
-    mean_flight = float(np.mean(flight_times)) if flight_times else 200.0  # ms default
-    mean_pressure = float(np.mean(pressures)) if pressures else 0.5
-    var_pressure = float(np.var(pressures)) if pressures else 0.01
-    mean_vel = float(np.mean(velocities)) if velocities else 0.5
-    
-    return [mean_hold, mean_flight, mean_pressure, var_pressure, mean_vel]
+class TouchPoint(BaseModel):
+    x: float
+    y: float
+    pressure: float
+    area: float
+    timestamp: float
 
-@app.post("/ml/behaviour/update")
-async def update_behaviour(req: BehaviourUpdateRequest, x_ml_service_key: str = Header(...)):
+class GestureSequence(BaseModel):
+    points: List[TouchPoint]
+    interStrokeTiming: float
+    screen: str
+
+class TouchABNetRequest(BaseModel):
+    userId: str
+    gestures: List[GestureSequence]
+
+def moving_average_filter(coords, window_size=3):
+    if len(coords) < window_size:
+        return coords
+    smoothed = []
+    for i in range(len(coords)):
+        start = max(0, i - window_size + 1)
+        window = coords[start:i+1]
+        smoothed.append(float(np.mean(window)))
+    return smoothed
+
+def encoder_activity(gesture: GestureSequence, smoothed_x: List[float], smoothed_y: List[float]) -> str:
+    """
+    ABNet Encoder A (Activity Prior):
+    Classifies the gesture context (Scroll, Tap, Typing) based on motion trajectories, duration, and screen context.
+    """
+    if not smoothed_x:
+        return "Tap"
+        
+    # Total path distance
+    path_len = 0.0
+    for i in range(1, len(smoothed_x)):
+        dx = smoothed_x[i] - smoothed_x[i-1]
+        dy = smoothed_y[i] - smoothed_y[i-1]
+        path_len += np.sqrt(dx*dx + dy*dy)
+        
+    duration = gesture.points[-1].timestamp - gesture.points[0].timestamp if len(gesture.points) > 1 else 0.0
+    screen = gesture.screen.lower()
+    
+    # Classify intent
+    if path_len < 40.0 and duration < 300.0:
+        if "login" in screen or "pin" in screen:
+            return "Typing"
+        return "Tap"
+    elif path_len >= 40.0:
+        return "Scroll"
+    return "Tap"
+
+def encoder_biometric(gesture: GestureSequence, smoothed_x: List[float], smoothed_y: List[float], velocities: List[float]) -> List[float]:
+    """
+    ABNet Encoder B (Biometric Signature):
+    Extracts user-specific, invariant touch rhythm and pressure features.
+    """
+    pressures = [pt.pressure for pt in gesture.points]
+    areas = [pt.area for pt in gesture.points]
+    
+    avg_pressure = float(np.mean(pressures)) if pressures else 0.5
+    avg_area = float(np.mean(areas)) if areas else 0.1
+    avg_velocity = float(np.mean(velocities)) if velocities else 0.0
+    std_velocity = float(np.std(velocities)) if len(velocities) > 1 else 0.0
+    
+    duration = gesture.points[-1].timestamp - gesture.points[0].timestamp if len(gesture.points) > 1 else 0.0
+    inter_stroke = gesture.interStrokeTiming
+    
+    return [
+        avg_pressure,
+        avg_area,
+        avg_velocity,
+        std_velocity,
+        duration,
+        inter_stroke
+    ]
+
+@app.post("/ml/behaviour/verify")
+async def verify_behaviour_abnet(req: TouchABNetRequest, x_ml_service_key: str = Header(...)):
     await verify_service_key(x_ml_service_key)
     
     try:
-        new_features = extract_behaviour_features(req.events)
+        biometric_vectors = []
+        classified_activities = []
         
-        # Load and append to historical profiles
-        profile_data = db.get_profile(f"behaviour_{req.userId}")
+        # 1. Process each gesture in the batch
+        for gesture in req.gestures:
+            if not gesture.points:
+                continue
+                
+            raw_x = [pt.x for pt in gesture.points]
+            raw_y = [pt.y for pt in gesture.points]
+            
+            # Smooth coordinates using Moving Average Filter
+            smoothed_x = moving_average_filter(raw_x)
+            smoothed_y = moving_average_filter(raw_y)
+            
+            # Compute velocities
+            velocities = []
+            for i in range(1, len(gesture.points)):
+                dx = smoothed_x[i] - smoothed_x[i-1]
+                dy = smoothed_y[i] - smoothed_y[i-1]
+                dist = np.sqrt(dx*dx + dy*dy)
+                dt = gesture.points[i].timestamp - gesture.points[i-1].timestamp
+                if dt > 0:
+                    velocities.append(dist / dt)
+            
+            # Encoder A (Activity Prior)
+            activity = encoder_activity(gesture, smoothed_x, smoothed_y)
+            classified_activities.append(activity)
+            
+            # Encoder B (Biometric Signature)
+            biometric_vector = encoder_biometric(gesture, smoothed_x, smoothed_y, velocities)
+            biometric_vectors.append(biometric_vector)
+            
+        if not biometric_vectors:
+            return {"match": True, "confidence": 1.0, "status": "calibrated", "gesture": "Tap"}
+            
+        last_gesture_type = classified_activities[-1]
+        
+        # 2. Manage SQLite-backed calibration phase
+        profile_key = f"touch_history_{req.userId}"
+        history_data = db.get_profile(profile_key)
+        
         history = []
-        if profile_data:
+        if history_data:
             try:
-                history = json.loads(profile_data)
+                history = json.loads(history_data)
             except Exception:
                 history = []
                 
-        history.append(new_features)
-        if len(history) > 50:
-            history = history[-50:]
+        # Append new vectors to baseline history
+        for vec in biometric_vectors:
+            history.append(vec)
             
-        db.save_profile(f"behaviour_{req.userId}", json.dumps(history))
-        return {"success": True, "profileUpdated": True}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
-
-@app.post("/ml/behaviour/verify")
-async def verify_behaviour(req: BehaviourUpdateRequest, x_ml_service_key: str = Header(...)):
-    await verify_service_key(x_ml_service_key)
-    
-    try:
-        current_features = extract_behaviour_features(req.events)
-        profile_data = db.get_profile(f"behaviour_{req.userId}")
-        
-        if not profile_data:
-            return {"match": True, "confidence": 1.0, "reason": "No enrolled profile yet"}
+        # Keep maximum history size
+        if len(history) > 100:
+            history = history[-100:]
             
-        history = json.loads(profile_data)
-        if len(history) < 3:
-            # Match by default but collect data
-            history.append(current_features)
-            db.save_profile(f"behaviour_{req.userId}", json.dumps(history))
-            return {"match": True, "confidence": 1.0, "reason": "Collecting baseline"}
+        db.save_profile(profile_key, json.dumps(history))
+        
+        total_samples = len(history)
+        
+        # If still in calibration (need 50 gesture samples)
+        if total_samples < 50:
+            return {
+                "match": True,
+                "confidence": 1.0,
+                "status": f"calibrating ({total_samples}/50)",
+                "gesture": last_gesture_type
+            }
             
-        # Standardized Euclidean distance matching
-        history_arr = np.array(history)
-        mean_vector = np.mean(history_arr, axis=0)
-        std_vector = np.std(history_arr, axis=0)
+        # 3. Perform Biometric Verification against Baseline Template
+        # Compute template mean and std deviation from the baseline history (first 50 samples)
+        baseline_samples = np.array(history[:50])
+        template_mean = np.mean(baseline_samples, axis=0)
+        template_std = np.std(baseline_samples, axis=0)
         
-        std_vector[std_vector == 0] = 0.01  # Prevent divide-by-zero
+        # Avoid division by zero
+        template_std[template_std == 0] = 0.01
         
-        z_scores = np.abs(current_features - mean_vector) / std_vector
+        # Evaluate recent batch against baseline template
+        recent_samples = np.array(biometric_vectors)
+        z_scores = np.abs(recent_samples - template_mean) / template_std
         avg_z_score = float(np.mean(z_scores))
         
-        # Match threshold (typically Z-score average under 2.5 is accepted)
+        # Task-Context Normalization (Encoder A): adjust threshold based on activity type
+        # Typing and scrolling patterns are more variable, so relax margins slightly
         threshold = 2.5
+        if last_gesture_type in ["Scroll", "Typing"]:
+            threshold = 3.0
+            
         match = avg_z_score <= threshold
-        confidence = max(0.0, min(1.0, 1.0 - (avg_z_score / threshold)))
+        # Map Z-score distance to similarity confidence percentage (Z=0 -> 100%, Z>=threshold -> 0%)
+        confidence = float(max(0.0, min(1.0, 1.0 - (avg_z_score / threshold))))
         
-        return {"match": match, "confidence": confidence, "distance": avg_z_score}
+        return {
+            "match": match,
+            "confidence": confidence,
+            "status": "calibrated",
+            "gesture": last_gesture_type
+        }
+    except Exception as e:
+        return {"match": False, "confidence": 0.0, "status": "error", "error": str(e)}
+
+@app.post("/ml/behaviour/update")
+async def update_behaviour_abnet(req: TouchABNetRequest, x_ml_service_key: str = Header(...)):
+    await verify_service_key(x_ml_service_key)
+    try:
+        # Forward to same SQLite log
+        return await verify_behaviour_abnet(req, x_ml_service_key)
     except Exception as e:
         return {"match": False, "confidence": 0.0, "error": str(e)}
 

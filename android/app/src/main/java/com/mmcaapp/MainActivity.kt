@@ -6,8 +6,15 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import android.os.Bundle
 import android.view.WindowManager
+import android.view.MotionEvent
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.modules.core.DeviceEventManagerModule
 
 class MainActivity : ReactActivity() {
+  private val currentGesturePoints = mutableListOf<WritableMap>()
+  private var lastGestureEndTime: Long = 0
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     
@@ -22,6 +29,62 @@ class MainActivity : ReactActivity() {
       // In a real premium app, we might block execution or flag the user
       android.util.Log.e("MMCA_SECURITY", "ROOT DETECTED: Device integrity compromised")
     }
+  }
+
+  override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+    if (ev != null) {
+      val action = ev.actionMasked
+      val x = ev.rawX
+      val y = ev.rawY
+      val pressure = ev.pressure
+      val size = ev.size // Contact area size
+      val timestamp = ev.eventTime // ms
+
+      // Build touch point map
+      val pt = Arguments.createMap()
+      pt.putDouble("x", x.toDouble())
+      pt.putDouble("y", y.toDouble())
+      pt.putDouble("pressure", pressure.toDouble())
+      pt.putDouble("area", size.toDouble())
+      pt.putDouble("timestamp", timestamp.toDouble())
+
+      when (action) {
+        MotionEvent.ACTION_DOWN -> {
+          currentGesturePoints.clear()
+          currentGesturePoints.add(pt)
+        }
+        MotionEvent.ACTION_MOVE -> {
+          currentGesturePoints.add(pt)
+        }
+        MotionEvent.ACTION_UP -> {
+          currentGesturePoints.add(pt)
+          val interStrokeTiming = if (lastGestureEndTime > 0) timestamp - lastGestureEndTime else 0
+          lastGestureEndTime = timestamp
+
+          // Build gesture batch map
+          val gestureMap = Arguments.createMap()
+          val pointsArray = Arguments.createArray()
+          for (point in currentGesturePoints) {
+            pointsArray.pushMap(point)
+          }
+          gestureMap.putArray("points", pointsArray)
+          gestureMap.putDouble("interStrokeTiming", interStrokeTiming.toDouble())
+
+          // Emit to JS
+          val reactContext = try {
+            reactInstanceManager?.currentReactContext
+          } catch (e: Exception) {
+            null
+          }
+          if (reactContext != null && reactContext.hasActiveCatalystInstance()) {
+            reactContext
+              .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+              .emit("onNativeTouchEvent", gestureMap)
+          }
+        }
+      }
+    }
+    return super.dispatchTouchEvent(ev)
   }
 
   private fun isDeviceRooted(): Boolean {
@@ -58,3 +121,4 @@ class MainActivity : ReactActivity() {
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 }
+
