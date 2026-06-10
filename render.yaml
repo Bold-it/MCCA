@@ -1,9 +1,10 @@
-services:
+databases:
   # 1. PostgreSQL Database
-  - type: pgo
-    name: mmca-postgres
+  - name: mmca-postgres
     plan: free
-    version: 16
+    postgresMajorVersion: 16
+
+services:
 
   # 2. Node.js Backend Service
   - type: web
