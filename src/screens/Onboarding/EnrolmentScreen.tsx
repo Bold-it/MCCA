@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Dimensions } from 'react-native';
 import { Svg, Ellipse, Defs, Mask, Rect, Path, Circle, Polyline } from 'react-native-svg';
-import { Camera, useCameraDevices } from 'react-native-vision-camera';
+import { Camera, useCameraDevices, useCameraPermission } from 'react-native-vision-camera';
 import ReactNativeBiometrics from 'react-native-biometrics';
 import Animated, { FadeIn, SlideInRight, SlideOutLeft } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
@@ -49,20 +49,31 @@ export const EnrolmentScreen = () => {
   // Face Enrolment State
   const [faceSamples, setFaceSamples] = useState(0);
   const [livenessInstruction, setLivenessInstruction] = useState('Position your face in the oval');
-  const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
+  const [cameraReady, setCameraReady] = useState(false);
 
   // Biometrics State
   const [fingerprintEnrolled, setFingerprintEnrolled] = useState(false);
 
+  const { hasPermission, requestPermission } = useCameraPermission();
   const devices = useCameraDevices();
-  const device = devices.find((d) => d.position === 'front') || devices[0];
+  const device = devices.find((d) => d.position === 'front') ?? devices[0];
 
+  // When step changes to 2, request permission and add a short delay
+  // so the View layout is fully mounted before Camera attaches its surface.
   useEffect(() => {
-    (async () => {
-      const status = await (Camera as any).requestCameraPermission();
-      setCameraPermission(status === 'authorized');
-    })();
-  }, []);
+    if (step === 2) {
+      setCameraReady(false);
+      (async () => {
+        if (!hasPermission) {
+          await requestPermission();
+        }
+        // 400ms delay ensures the container View is laid out on Tecno/Transsion devices
+        setTimeout(() => setCameraReady(true), 400);
+      })();
+    } else {
+      setCameraReady(false);
+    }
+  }, [step]);
 
   const handleNextStep = () => {
     if (step === 1) {
@@ -156,12 +167,12 @@ export const EnrolmentScreen = () => {
 
         {step === 2 && (
           <Animated.View entering={SlideInRight} style={styles.cameraStep}>
-            {cameraPermission && device ? (
+            {hasPermission && device && cameraReady ? (
               <View style={styles.cameraContainer}>
                 <Camera
                   style={StyleSheet.absoluteFill}
                   device={device}
-                  isActive={true}
+                  isActive={step === 2 && cameraReady}
                 />
                 <FaceGuideOverlay />
                 <View style={styles.cameraOverlay}>
@@ -186,8 +197,12 @@ export const EnrolmentScreen = () => {
                   </Pressable>
                 )}
               </View>
+            ) : step === 2 && !cameraReady ? (
+              <View style={styles.cameraContainer}>
+                <Text style={styles.cameraInstruction}>Starting camera...</Text>
+              </View>
             ) : (
-              <Text style={styles.errorText}>Camera permission required</Text>
+              <Text style={styles.errorText}>Camera permission denied. Please enable it in Settings.</Text>
             )}
             <PrimaryButton 
               label="Continue" 

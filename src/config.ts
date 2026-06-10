@@ -9,11 +9,12 @@
  * Default: '10.0.2.2' works for the local Android Emulator.
  */
 
-// Production Render URLs
-export const BACKEND_URL = 'https://mmca-backend-pbo2.onrender.com';
-export const ML_SERVICE_URL = 'https://mmca-ml-service-pbo2.onrender.com';
+// Local test URLs (ADB reverse tunnel - phone accesses PC localhost via USB)
+// export const BACKEND_URL = 'http://localhost:3000';
+// export const ML_SERVICE_URL = 'http://localhost:8000';
 
-// Local development URLs (commented out)
-// const HOST_IP = '10.0.2.2'; 
-// export const BACKEND_URL = `http://${HOST_IP}:3000`;
-// export const ML_SERVICE_URL = `http://${HOST_IP}:8000`;
+// Wireless test URLs (Phone and PC on the same Wi-Fi)
+export const BACKEND_URL = 'http://192.168.6.157:3000';
+export const ML_SERVICE_URL = 'http://192.168.6.157:8000';
+// export const ML_SERVICE_URL = 'https://mmca-ml-service-pbo2.onrender.com';
+
